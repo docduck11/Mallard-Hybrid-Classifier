@@ -1,213 +1,240 @@
-
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Game-farm Mallard Hybrid Classifier</title>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
-  <meta name="theme-color" content="#0b8a6a"/>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b8a6a">
   <style>
-    :root{ --bg:#0f172a; --card:#0b1320; --text:#e6edf3; --muted:#9aa4b2; --green:#0b8a6a; --ring:rgba(20,184,166,.45); }
-    @media (prefers-color-scheme: light){ :root{ --bg:#f6f7f8; --card:#ffffff; --text:#0f172a; --muted:#6b7280; } }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    body{margin:0;background:linear-gradient(180deg,#06101a,var(--bg) 240px) fixed;color:var(--text)}
-    header{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#0b8a6a,#116b94);padding:10px 14px;box-shadow:0 10px 32px rgba(0,0,0,.18)}
-    header img{height:36px;width:auto;display:block}
-    header .meta{display:flex;flex-direction:column;line-height:1.1}
-    .title{font-weight:900;font-size:18px}
-    .lab{font-size:12px;opacity:.9}
-    .credit{margin-left:auto;font-size:11px;opacity:.85}
-    main{max-width:960px;margin:14px auto 40px;padding:0 14px}
-    .card{background:var(--card);border-radius:18px;padding:18px;border:1px solid rgba(255,255,255,.06);box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    .grid{display:grid;gap:14px} @media(min-width:860px){.grid-2{grid-template-columns:1fr 1fr} .grid-3{grid-template-columns:repeat(3,1fr)}}
-    .label{font-weight:700;font-size:14px;margin-bottom:6px;color:#cdebea}
-    .segment{display:inline-flex;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
-    .segment button{padding:10px 16px;border:none;background:transparent;color:var(--text);cursor:pointer;min-width:110px}
-    .segment button.active{background:rgba(20,184,166,.18)}
-    .input{display:flex;flex-direction:column;gap:6px}
-    input[type=number]{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(148,163,184,.45);background:rgba(255,255,255,.04);color:var(--text);font-size:18px}
-    input::placeholder{color:#94a3b8}
-    input:focus{outline:3px solid var(--ring);border-color:transparent}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(148,163,184,.15);border:1px solid rgba(148,163,184,.35);font-size:12px;margin-left:6px;color:#cbd5e1}
-    .btns button{border:none;border-radius:14px;padding:14px 18px;font-size:18px;font-weight:800;cursor:pointer}
-    .btn-primary{background:linear-gradient(180deg,#129b7a,#0b6a4f);color:#fff;box-shadow:0 10px 24px rgba(11,138,106,.35)}
-    .btn-secondary{background:linear-gradient(180deg,#334155,#1f2937);color:#e5e7eb}
-    .result{margin-top:12px;border-radius:16px;padding:14px 16px;font-size:22px;font-weight:900;display:flex;justify-content:space-between;align-items:center}
-    .result.ok{background:linear-gradient(180deg,rgba(16,185,129,.18),rgba(16,185,129,.08));border:1px solid rgba(16,185,129,.28);color:#10e7a6}
-    .result.warn{background:linear-gradient(180deg,rgba(242,193,0,.18),rgba(242,193,0,.08));border:1px solid rgba(242,193,0,.28);color:#ffd166}
-    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-    .kpi .box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;font-size:14px}
-    #resultIcon{margin-top:8px;display:flex;align-items:center;gap:10px}
-    #resultIcon img{height:48px;width:auto;display:block}
-    footer{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
+    :root {
+      --bg: #0a121d;
+      --panel: #0f1b2b;
+      --ink: #e6edf3;
+      --muted: #9aa4b2;
+      --pill: #152538;
+      --accent: #1fa971;
+      --btn2: #2d3a4e;
+      --outline: #1d2a3b;
+      --success-ink: #7cf0b0;
+      --success-bg: #0b1f18;
+      --success-border: #1a704f;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; }
+    .topbar { background:#0b8a6a; display:flex; align-items:center; justify-content:space-between; padding:10px 16px; }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand img { width:32px; height:32px; border-radius:999px; }
+    .brand .title { font-weight:800; }
+    .brand .sub { font-size:12px; color:#e9fff8; opacity:.85 }
+    .credit { color:#d8f2ef; opacity:.8; font-size:12px; }
+    .wrap { max-width:1024px; margin:24px auto; padding:0 16px 32px; }
+    .panel { background:var(--panel); border-radius:18px; padding:18px; box-shadow:0 10px 40px rgba(0,0,0,.3);}
+    .grid { display:grid; gap:14px; }
+    .grid-2 { grid-template-columns:1fr 1fr; }
+    .seg { display:inline-grid; grid-auto-flow:column; background:#0b1420; padding:4px; border-radius:12px; }
+    .seg input { display:none; }
+    .seg label { padding:8px 14px; border-radius:10px; cursor:pointer; color:#a9b4c1; }
+    .seg input:checked + label { background:#11273e; color:var(--ink); }
+    .label { color:#cdd6e3; font-size:14px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+    .pill { font-size:12px; color:#cdd6e3; background:var(--pill); padding:2px 8px; border-radius:999px; }
+    input[type=number] { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--outline); background:#0b1420; color:var(--ink); }
+    .btns button { width:100%; padding:14px 16px; border:0; border-radius:14px; font-weight:700; cursor:pointer; }
+    .btn-primary { background:var(--accent); color:white; }
+    .btn-secondary { background:var(--btn2); color:#cfd8e3; }
+    .mini { background:#0b1420; border-radius:12px; padding:10px 12px; color:#cdd6e3; }
+    .err { margin-top:10px; color:#f87171; font-weight:700; display:none; }
+    .call { display:none; margin-top:14px; background:var(--success-bg); border:1px solid var(--success-border); color:var(--success-ink); border-radius:12px; padding:14px; text-align:center; font-weight:800; }
+    .call .row { display:flex; align-items:center; gap:12px; justify-content:center; }
+    .call img { width:48px; height:48px; }
+    .disc { text-align:center; color:#a9b4c1; font-size:12px; margin:14px 0; }
+    .disc strong { color:#ffd166; }
+    .card { background:var(--panel); border-radius:14px; padding:14px; border:1px solid rgba(255,255,255,.05); }
+    .card h3 { margin:0 0 10px; font-size:16px; color:#cfe2ff; }
+    .video-wrap { display:flex; justify-content:center; padding:10px; }
+    video { max-width:560px; width:100%; border-radius:10px; outline:1px solid rgba(255,255,255,.06); }
+    ul.materials { margin:8px 0 0 18px; }
+    .footer { text-align:center; color:#9aa4b2; font-size:11px; margin-top:20px; }
+    @media (max-width:720px){ .grid-2{ grid-template-columns:1fr; } }
   </style>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="Mallard badge"/>
-    <div class="meta">
-      <div class="title">Game-farm Mallard Hybrid Classifier</div>
-      <div class="lab">SUNY ESF Waterfowl and Wetlands Lab</div>
+  <div class="topbar">
+    <div class="brand">
+      <img src="logo.png" alt="SUNY ESF logo">
+      <div>
+        <div class="title">Game‑farm Mallard Hybrid Classifier</div>
+        <div class="sub">SUNY ESF Waterfowl and Wetlands Lab</div>
+      </div>
     </div>
     <div class="credit">Created by Dominic Hockenbury</div>
-  </header>
-  <main>
-    <div class="card">
-      <div class="grid grid-2">
+  </div>
+
+  <div class="wrap">
+    <div class="panel">
+      <div class="grid grid-2" style="align-items:start">
         <div>
-          <div class="label">Sex</div>
-          <div class="segment" id="sexSeg">
-            <button data-sex="female" class="active">Female</button>
-            <button data-sex="male">Male</button>
+          <div class="label" style="margin-bottom:8px">Sex</div>
+          <div class="seg">
+            <input id="sex-f" name="sex" type="radio" value="female" checked />
+            <label for="sex-f">Female</label>
+            <input id="sex-m" name="sex" type="radio" value="male" />
+            <label for="sex-m">Male</label>
           </div>
         </div>
         <div>
-          <div class="label">Mode <span class="pill">Balanced τ</span></div>
-          <div class="small">Predictions use the balanced threshold (τ). Works offline.</div>
+          <div class="label" style="margin-bottom:8px">Mode <span class="pill">Balanced τ</span></div>
+          <div style="color:#a9b4c1;font-size:13px">Predictions use the balanced threshold (τ). Works offline.</div>
         </div>
       </div>
-      <div id="inputs" class="grid grid-3" style="margin-top:14px"></div>
-      <div class="grid grid-2 btns" style="margin-top:12px">
-        <button id="classify" class="btn-primary">Classify</button>
-        <button id="reset" class="btn-secondary">Reset</button>
-      </div>
-      <div id="out">
-        <div id="call" class="result" style="text-align:center; justify-content:center" style="display:none"></div>
-        <div id="resultIcon" style="justify-content:center; text-align:center"></div>
-        <div class="kpi">
-          <div class="box">p (raw): <b id="pval">—</b></div>
-          <div class="box">τ (raw): <b id="tau">—</b></div>
-          <div class="box">z: <b id="zval">—</b></div>
+
+      <div class="grid grid-2" style="margin-top:14px">
+        <div>
+          <div class="label">Tarsus 2 (mm) <span class="pill">39–55 mm</span></div>
+          <input id="tarsus2" type="number" step="0.1" min="39" max="55" placeholder="39 – 55">
         </div>
-        <div class="small" style="margin-top:8px">Rule: predict Likely &lt; 70% Wild Mallard Ancestry when p ≥ τ.</div>
+        <div>
+          <div class="label">Wing chord (mm) <span class="pill">200–350 mm</span></div>
+          <input id="wing" type="number" step="1" min="200" max="350" placeholder="200 – 350">
+        </div>
+        <div id="male-bw-wrap" style="display:none">
+          <div class="label">Bill width (mm) <span class="pill">mm</span></div>
+          <input id="billwidth" type="number" step="0.1" min="10" max="40" placeholder="e.g., 24">
+        </div>
+      </div>
+
+      <div class="grid grid-2 btns" style="margin-top:16px">
+        <button class="btn-primary" onclick="try{ classify(currentSex()); }catch(e){ console.error(e); }">Classify</button>
+        <button class="btn-secondary" onclick="(function(){
+          const box = document;
+          box.querySelectorAll('input').forEach(i => { if (i.type==='number') i.value=''; });
+          hideErr(); const call = document.getElementById('call'); if (call) call.style.display='none';
+          setMini('pval','—'); setMini('tau','—'); setMini('zval','—');
+          const img=document.getElementById('resultImg'); if (img) img.src='';
+        })();">Reset</button>
+      </div>
+
+      <div id="err" class="err">❌ Please enter all measurements in millimeters (mm). Values under 50 mm are not valid for wing chord.</div>
+
+      <div class="grid grid-2" style="margin-top:14px">
+        <div class="mini">p (raw): <span id="pval">—</span></div>
+        <div class="mini">τ (raw): <span id="tau">—</span></div>
+        <div class="mini">z: <span id="zval">—</span></div>
+      </div>
+
+      <div id="call" class="call" aria-live="polite">
+        <div class="row">
+          <img id="resultImg" alt="" src="">
+          <div class="call-text">—</div>
+        </div>
+      </div>
+
+      <div class="sub" style="margin-top:10px">Rule: predict Likely &lt; 70% Wild Mallard Ancestry when p ≥ τ.</div>
+    </div>
+
+    <div class="disc">
+      <div>Standardized logistic models · sex‑specific · locally computed.</div>
+      <div style="margin-top:8px"><strong>⚠ Disclaimer:</strong> This tool is a work in progress and classification results may not be fully accurate.</div>
+      <div style="margin-top:6px">
+        – For drakes (males): about 67% of those with &lt;70% wild mallard ancestry are correctly classified, and about 83% of those with ≥70% ancestry are correctly classified.<br/>
+        – For hens (females): classification is highly accurate, with 100% of &lt;70% ancestry hens and about 97% of ≥70% ancestry hens correctly classified.
+      </div>
+      <div style="margin-top:6px">Results may change as more data are added and models are refined.</div>
+    </div>
+
+    <div class="card" style="margin:14px 0 16px">
+      <h3>Measurement Demo</h3>
+      <div class="video-wrap">
+        <video controls poster="logo.png" preload="metadata">
+          <source src="measurement_demo.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </div>
     </div>
-    <footer>Standardized logistic models • sex-specific • locally computed.<br/><span style=\"display:block; margin-top:8px; font-size:12px; color:#9aa4b2;\">Disclaimer: This tool is a work in progress and classification results may not be fully accurate.</span>
-<br/><span style="display:block; margin-top:8px; font-size:12px; color:#9aa4b2;">
-⚠️ <b>Disclaimer:</b><br/>
-This tool is still under development. Based on current tests:<br/>
-- For <b>drakes (males):</b> about <b>67%</b> of those with &lt;70% wild mallard ancestry are correctly classified, and about <b>83%</b> of those with ≥70% ancestry are correctly classified.<br/>
-- For <b>hens (females):</b> classification is highly accurate, with <b>100%</b> of &lt;70% ancestry hens and about <b>97%</b> of ≥70% ancestry hens correctly classified.<br/><br/>
-Results may change as more data are added and models are refined.
-</span>
-</footer>
-  
-    <div class="card" style="margin-top:16px">
-      <div class="label">Measurement Demo (Placeholder)</div>
-      <div class="small" style="margin-bottom:8px">
-        This app works offline. When you're ready, add <code>measurement_demo.mp4</code> to the app folder and it will play here without internet.
-      </div>
-      <video id="measureDemo" width="320" height="240" controls style="display:block; margin:10px auto; background:rgba(255,255,255,.06); border-radius:12px; border:1px solid rgba(148,163,184,.25)">
-        <!-- Add the local video file to enable offline playback -->
-        <!-- <source src="measurement_demo.mp4" type="video/mp4"> -->
-        Your browser does not support the video tag.
-      </video>
+
+    <div class="card">
+      <h3>Materials Needed</h3>
+      <ul class="materials">
+  <li>
+    Digital calipers —
+    <a href="https://www.amazon.com/Digital-Caliper-Electronic-Micrometer-Millimeter/dp/B087N5N45G/ref=sr_1_1_sspa?crid=MN7X4Y7XGMZN&dib=eyJ2IjoiMSJ9.kk-u632s2ZagricKeqCkzXd5x66bd9cqgX2kUQr_YZAzzuonOSM84kpG0ECUl-AhkFHKtvWY_ELeM52jzepywv0Q3Wx7jtzZcez83bZ2WI3c4QkPo9TqY1_bu5yI9wtv_U1t0Hp9fo7lt01b0RDpn2OgG3z6X3uQfuDYM0IKzaChtBBg-CnHEIFdTFPKUPG1D_vyI2X6Gf0LViw-AeSWuhfLWAfCFdb2iy_Zo0G3y_M.GW0RSLd-9HO2pM1gv0e4g1Kt8GoXWeHy7H5EMbJTHXk&dib_tag=se&keywords=calipers&qid=1759862504&sprefix=calip%2Caps%2C122&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1"
+       target="_blank" rel="noopener noreferrer">Amazon link</a>
+  </li>
+  <li>
+    Meter stick in cm —
+    <a href="https://www.amazon.com/Pacific-Arc-Stainless-Measurements-Inches/dp/B074D1BK4M/ref=sr_1_3_sspa?crid=2V3J2UUONMGKM&dib=eyJ2IjoiMSJ9.T-1BtX8Jvp1G8mpeE-LNO4hxyM0trV0k0Hnm3S5ok3HnZM1LkpVeMcAw_t5zRUFKi1Cm2Uyq2nWNVCd0qjSi9gtdW5US6_d2dtDLt5cN4fU63h71KL1JuYBpLk7rnBGXej5C4oHeexMEax8bf7JCYu4fLLgXv7Rxyc5LUxHGzNgY9iv0KH-Zv_X7AfR4-wqjqbfI1jFh-06TwnZ5z6iEOGcjguX_r2Lia-RDuehednMjlig6SngdZ19IMdsThZcIjALmUj32nbDC8rF6T6SKTBocJT6fkxMuQl6pO3jqgxQ.lnD-2lJjHjlR0LxiNI_3Vq_sTudrW3zteMfzh5QFyKY&dib_tag=se&keywords=meter%2Bstick%2Bcm&qid=1759862340&sprefix=%2Caps%2C103&sr=8-3-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1"
+       target="_blank" rel="noopener noreferrer">Amazon link</a>
+  </li>
+</ul>
     </div>
 
-  </main>
-<script>
-const MODELS = {"female": {"b0": -5.4465, "features": [{"key": "tarsus2", "label": "Tarsus 2 (mm)", "mean": 43.984, "std": 2.1848, "coef": 1.2293, "min": 39, "max": 55, "step": 0.1, "unit": "mm"}, {"key": "wing", "label": "Wing Chord (cm)", "mean": 262.3024, "std": 11.5849, "coef": -1.2384, "min": 150, "max": 350, "step": 1, "unit": "cm"}], "tau": 0.0689}, "male": {"b0": -3.4072, "features": [{"key": "tarsus2", "label": "Tarsus 2 (mm)", "mean": 46.4819, "std": 2.1641, "coef": 0.7743, "min": 39, "max": 55, "step": 0.1, "unit": "mm"}, {"key": "wing", "label": "Wing Chord (cm)", "mean": 283.0392, "std": 10.5121, "coef": -0.8025, "min": 150, "max": 350, "step": 1, "unit": "cm"}, {"key": "culmen", "label": "Culmen Width (mm)", "mean": 22.271, "std": 0.865, "coef": 0.3941, "min": 17.0, "max": 25.0, "step": 0.1, "unit": "mm"}], "tau": 0.0738}};
+    <div class="footer">mallard app <strong>v9.9 full UI</strong> — 2025-10-07 18:08</div>
+  </div>
 
-const sexSeg = document.getElementById('sexSeg');
-const inputsBox = document.getElementById('inputs');
-const btnClassify = document.getElementById('classify');
-const btnReset = document.getElementById('reset');
+  <script>
+    function currentSex(){ return document.querySelector('input[name="sex"]:checked')?.value || 'female'; }
+    function showErr(msg){ const e=document.getElementById('err'); if(!e) return; e.textContent=msg; e.style.display='block'; }
+    function hideErr(){ const e=document.getElementById('err'); if(!e) return; e.style.display='none'; e.textContent=''; }
+    function setMini(id,val){ const el=document.getElementById(id); if(el) el.textContent = val; }
+    function syncMaleField(){ const wrap = document.getElementById('male-bw-wrap'); if (wrap) wrap.style.display = (currentSex()==='male')?'':'none'; }
+    document.addEventListener('DOMContentLoaded', syncMaleField);
+    document.querySelectorAll('input[name="sex"]').forEach(r => r.addEventListener('change', syncMaleField));
 
-function renderInputs(sex){
-  inputsBox.innerHTML = '';
-  MODELS[sex].features.forEach(function(f){
-    var id = sex + '-' + f.key;
-    var unit = f.unit || '';
-    var wrap = document.createElement('div');
-    wrap.className = 'input';
-    wrap.innerHTML =
-      '<div class="label">' + f.label + ' <span class="pill">' + f.min + '–' + f.max + ' ' + unit + '</span></div>' +
-      '<input type="number" step="' + f.step + '" min="' + f.min + '" max="' + f.max + '" inputmode="decimal" id="' + id + '" placeholder="' + f.min + ' – ' + f.max + '">';
-    inputsBox.appendChild(wrap);
-  });
-}
+    function classify(sex){
+      sex = sex || currentSex();
+      const t = parseFloat(document.getElementById('tarsus2')?.value);
+      const w = parseFloat(document.getElementById('wing')?.value);
+      if (isNaN(t) || isNaN(w)) return;
+      if (!isNaN(w) && w < 50) { showErr('❌ Please enter all measurements in millimeters (mm). Values under 50 mm are not valid for wing chord.'); return; }
+      hideErr();
+      const M = {
+        female: {
+          b0: -5.4465, tau: 0.0689,
+          feats: [{ mean: 43.9840, std: 2.1848, coef: 1.2293 },{ mean: 262.3024, std: 11.5849, coef: -1.2384 }]
+        },
+        male: {
+          b0: -3.7716, tau: 0.1343,
+          feats: [{ mean: 46.2812, std: 2.1838, coef: 0.9251 },{ mean: 283.0392, std: 10.5121, coef: -0.8025 }]
+        }
+      };
+      const m = M[sex];
+      const z = m.b0 + m.feats[0].coef*((t - m.feats[0].mean)/m.feats[0].std) + m.feats[1].coef*((w - m.feats[1].mean)/m.feats[1].std);
+      const p = 1 / (1 + Math.exp(-z));
+      setMini('pval', isFinite(p) ? p.toFixed(4) : '—');
+      setMini('tau', m.tau.toFixed(4));
+      setMini('zval', isFinite(z) ? z.toFixed(4) : '—');
 
-function getVals(sex){
-  var vals = [];
-  for (var i=0; i<MODELS[sex].features.length; i++){
-    var f = MODELS[sex].features[i];
-    var el = document.getElementById(sex + '-' + f.key);
-    var v = parseFloat(el.value);
-    if (isNaN(v)) return null;
-    vals.push(v); // no conversion; using entered cm for wing
-  }
-  return vals;
-}
+      const call=document.getElementById('call');
+      const isLT = (p >= m.tau);
+      const txt = isLT ? 'Likely < 70% Wild Mallard Ancestry' : '🦆 Likely ≥ 70% Wild Mallard Ancestry';
+      if (call) { call.style.display='block'; call.querySelector('.call-text').textContent = txt; }
+      const i = document.getElementById('resultImg');
+      if (i) {
+        if (isLT) { i.style.display='inline-block'; i.src='duck_tractor.png'; }
+        else { i.style.display='none'; i.src=''; }
+      }
+    }
+  </script>
 
-function classify(sex){
-  var model = MODELS[sex];
-  var vals = getVals(sex);
-  if (!vals) return;
-  var z = model.b0;
-  for (var i=0; i<model.features.length; i++){
-    var f = model.features[i];
-    var xstd = (vals[i] - f.mean) / f.std;
-    z += f.coef * xstd;
-  }
-  var p = 1/(1+Math.exp(-z));
-  var tau = model.tau;
-  var callBox = document.getElementById('call');
-  var isLess = (p >= tau); // predict <70% when p >= tau
-  callBox.className = 'result ' + (isLess ? 'ok' : 'warn');
-  callBox.textContent = isLess ? 'Likely < 70% Wild Mallard Ancestry' : 'Likely ≥ 70% Wild Mallard Ancestry';
-  callBox.style.display = 'flex';
-  document.getElementById('pval').textContent = p.toFixed(4);
-  document.getElementById('tau').textContent = tau.toFixed(4);
-  document.getElementById('zval').textContent = z.toFixed(4);
+  <script>
+    const APP_VERSION = "v1.0.0";
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js?v=' + APP_VERSION)
+          .then(function(reg) { /* ok */ })
+          .catch(function() { /* ignore */ });
 
-  var icon = document.getElementById('resultIcon');
-  icon.innerHTML = '';
-  if (isLess) {
-    var img = document.createElement('img');
-    img.src = 'duck_tractor.png';
-    img.alt = 'tractor mallard';
-    img.style.width = '60px';
-    img.style.height = '60px';
-    icon.appendChild(img);
-  } else {
-    var span = document.createElement('span');
-    span.textContent = '🦆';
-    span.style.fontSize = '48px';
-    icon.appendChild(span);
-  }
-}
-function currentSex(){ return sexSeg.querySelector('button.active').dataset.sex; }
-
-sexSeg.addEventListener('click', function(e){
-  if (e.target.tagName !== 'BUTTON') return;
-  sexSeg.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
-  e.target.classList.add('active');
-  renderInputs(e.target.dataset.sex);
-  document.getElementById('call').style.display='none';
-  document.getElementById('resultIcon').innerHTML='';
-  document.getElementById('pval').textContent='—';
-  document.getElementById('tau').textContent='—';
-  document.getElementById('zval').textContent='—';
-});
-
-btnClassify.addEventListener('click', function(){ classify(currentSex()); });
-btnReset.addEventListener('click', function(){
-  renderInputs(currentSex());
-  document.getElementById('call').style.display='none';
-  document.getElementById('resultIcon').innerHTML='';
-  document.getElementById('pval').textContent='—';
-  document.getElementById('tau').textContent='—';
-  document.getElementById('zval').textContent='—';
-});
-
-inputsBox.addEventListener('input', function(){ classify(currentSex()); });
-
-document.addEventListener('DOMContentLoaded', function(){
-  renderInputs('female');
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js');
-});
-</script>
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      });
+    }
+  </script>
 </body>
 </html>
