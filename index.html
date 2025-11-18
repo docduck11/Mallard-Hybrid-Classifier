@@ -45,6 +45,11 @@
     .mini { background:#0b1420; border-radius:12px; padding:10px 12px; color:#cdd6e3; }
     .err { margin-top:10px; color:#f87171; font-weight:700; display:none; }
     .call { display:none; margin-top:14px; background:var(--success-bg); border:1px solid var(--success-border); color:var(--success-ink); border-radius:12px; padding:14px; text-align:center; font-weight:800; }
+.call.yellow {
+  background: #3a3200 !important;      /* dark yellowish background */
+  border: 1px solid #e6c400 !important; /* yellow border */
+  color: #ffe76c !important;           /* yellow text */
+}
     .call .row { display:flex; align-items:center; gap:12px; justify-content:center; }
     .call img { width:48px; height:48px; }
     .disc { text-align:center; color:#a9b4c1; font-size:12px; margin:14px 0; }
@@ -184,43 +189,110 @@
     document.querySelectorAll('input[name="sex"]').forEach(r => r.addEventListener('change', syncMaleField));
 
     function classify(sex){
-      sex = sex || currentSex();
-      const t = parseFloat(document.getElementById('tarsus2')?.value);
-      const w = parseFloat(document.getElementById('wing')?.value);
-      if (isNaN(t) || isNaN(w)) return;
-      if (!isNaN(w) && w < 50) { showErr('❌ Please enter all measurements in millimeters (mm). Values under 50 mm are not valid for wing chord.'); return; }
-      hideErr();
-      const M = {
-        female: {
-          b0: -5.4465, tau: 0.0689,
-          feats: [{ mean: 43.9840, std: 2.1848, coef: 1.2293 },{ mean: 262.3024, std: 11.5849, coef: -1.2384 }]
-        },
-        male: {
-          b0: -3.7716, tau: 0.1343,
-          feats: [{ mean: 46.2812, std: 2.1838, coef: 0.9251 },{ mean: 283.0392, std: 10.5121, coef: -0.8025 }]
-        }
-      };
-      const m = M[sex];
-      const z = m.b0 + m.feats[0].coef*((t - m.feats[0].mean)/m.feats[0].std) + m.feats[1].coef*((w - m.feats[1].mean)/m.feats[1].std);
-      const p = 1 / (1 + Math.exp(-z));
-      setMini('pval', isFinite(p) ? p.toFixed(4) : '—');
-      setMini('tau', m.tau.toFixed(4));
-      setMini('zval', isFinite(z) ? z.toFixed(4) : '—');
+  sex = sex || currentSex();
 
-      const call=document.getElementById('call');
-      const isLT = (p >= m.tau);
-      const txt = isLT ? 'Likely < 70% Wild Mallard Ancestry' : '🦆 Likely ≥ 70% Wild Mallard Ancestry';
-      if (call) { call.style.display='block'; call.querySelector('.call-text').textContent = txt; }
-      const i = document.getElementById('resultImg');
-      if (i) {
-        if (isLT) { i.style.display='inline-block'; i.src='duck_tractor.png'; }
-        else { i.style.display='none'; i.src=''; }
-      }
+  const t  = parseFloat(document.getElementById('tarsus2')?.value);
+  const w  = parseFloat(document.getElementById('wing')?.value);
+  const bw = parseFloat(document.getElementById('billwidth')?.value);
+
+  // basic input checks
+  if (isNaN(t) || isNaN(w) || (sex === 'male' && isNaN(bw))) {
+    showErr('❌ Please enter all measurements (including bill width for males).');
+    return;
+  }
+  if (!isNaN(w) && w < 50) {
+    showErr('❌ Please enter all measurements in millimeters (mm). Values under 50 mm are not valid for wing chord.');
+    return;
+  }
+  hideErr();
+
+  // Models: females = 2 features (tarsus2, wing)
+  //         males   = 3 features (tarsus2, wing, culmen/bill width)
+  const M = {
+    female: {
+      b0: -5.4465,
+      tau: 0.0350,  // field-liberal τ for hens
+      feats: [
+        { mean: 43.9840, std:  2.1848, coef:  1.2293 }, // tarsus2
+        { mean: 262.3024, std: 11.5849, coef: -1.2384 } // wing
+      ]
+    },
+    male: {
+      b0: -3.4859,
+      tau: 0.1100,  // field-liberal τ for drakes with bill width
+      feats: [
+        { mean: 46.5156, std:  2.1905, coef:  0.9289 }, // tarsus2
+        { mean: 282.8753, std: 10.6929, coef: -0.9525 }, // wing
+        { mean: 22.2789, std:  0.8656, coef:  0.4753 }  // culmen (bill) width
+      ]
     }
+  };
+
+  const m = M[sex];
+
+  // choose inputs per sex
+  const inputs = (sex === 'male') ? [t, w, bw] : [t, w];
+
+  // logistic model: z = b0 + Σ coef * ((x - mean) / std)
+  let z = m.b0;
+  for (let i = 0; i < m.feats.length; i++) {
+    const f = m.feats[i];
+    const x = inputs[i];
+    z += f.coef * ((x - f.mean) / f.std);
+  }
+
+  const p = 1 / (1 + Math.exp(-z));
+
+  setMini('pval', isFinite(p) ? p.toFixed(4) : '—');
+  setMini('tau',  m.tau.toFixed(4));
+  setMini('zval', isFinite(z) ? z.toFixed(4) : '—');
+
+const call   = document.getElementById('call');
+const icon   = document.getElementById('resultImg');
+const textEl = call ? call.querySelector('.call-text') : null;
+
+  const isLT = (p >= m.tau);
+  const txt  = isLT
+    ? 'Likely < 70% Wild Mallard Ancestry'
+    : '🦆 Likely ≥ 70% Wild Mallard Ancestry';
+
+  if (call) {
+    call.style.display = 'block';
+
+    // update text in the inner .call-text span
+    if (textEl) {
+      textEl.textContent = txt;
+    } else {
+      // fallback if .call-text not found
+      call.textContent = txt;
+    }
+
+    // reset classes
+    call.classList.remove('yellow');
+
+    // apply yellow style when <70% wild
+    if (isLT) {
+      call.classList.add('yellow');
+    }
+  }
+
+  // update icon
+  if (icon) {
+  if (isLT) {
+    icon.style.display = 'inline-block';
+    icon.src = 'duck_tractor.png';
+  } else {
+    icon.style.display = 'none';   // hide icon completely for ≥70%
+    icon.src = '';                 // clear image source
+  }
+}
+}
+
+    
   </script>
 
   <script>
-    const APP_VERSION = "v1.0.0";
+    const APP_VERSION = "v1.0.1";
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('service-worker.js?v=' + APP_VERSION)
